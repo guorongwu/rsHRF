@@ -1,0 +1,29 @@
+code SPM plugin - additions and modifications to v1.0:
+------ v2.3, 202009 ----------- 
+Add a demo for LFP-IOS data analysis (rsHRF_demo_LFP_IOS.m).
+Add some demo scipts for UCLA BOLD-fMRI data analysis (rsHRF_demo_UCLA_batch.m),including:
+--Add a demo for multivariate analysis of variance (manova.m) analysis.
+--Add a script for connectome-based predictive modeling analysis(rsHRF_CPM.m).
+Update HRF deconvolution algorithm (rsHRF_iterative_wiener_deconv.m). 
+Modify several scripts name.
+Add partial correlation analysis. 
+Split the subfunctions in rsHRF.m into several independent codes.
+----------------------- 
+
+------ v2.2, 201909 ----------- 
+Change the GUI (add surface analysis panel and Display).
+Add rsHRF_viewer.m for HRF shapes visualization.
+Add a m-file (rsHRF_mvgc.m) for multivariate Granger causality analysis.
+Update HRF basis functions, add Gamma/Fourier basis function (more flexible, and supporting finer temporal grid). 
+Update (s)FIR model, using AR(k) for autocorrelated noise modeling.
+Add a m-file (rsHRF_estimation_impulseest.m, see code for help) for nonparametric impulse response estimation (not included in rsHRF GUI). 
+----------------------- 
+
+------ v2.1, 201908 ----------- 
+Add suface-based analysis module. 
+-----------------------
+
+------ v2.0, 201901 ----------- 
+Add functional (Pearson/Spearman correlation) and effective (Pairwise/Conditional/Partially Conditioned Granger causality) connectivity analysis module.
+Add rsHRF_install_SPM.m to facilitate the installation of the SPM plugin.
+-----------------------
