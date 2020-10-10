@@ -4,31 +4,37 @@ clear; %clears variables and functions from memory; see by typing "edit clear" i
 %% directory to rsHRF/code/ toolbox in "Downloads" folder
 GHrepo_dir = fileparts(which('rsHRF_install_SPM.m'));
 rsHRF_file = { %which files do you need?  
-'wgr_get_parameters.m'  
-'wgr_rshrf_estimation_canonhrf2dd_par2.m' %added
-'wgr_rsHRF_FIR.m' %added
-'rsHRF_estimation_temporal_basis.m'
-'rsHRF_estimation_FIR.m'
-'rsHRF_estimation_impulseest.m'
-'rsHRF_mvgc.m'
-'rsHRF_viewer.m'
-'wgr_rsHRF_global_para.m'
-'rsHRF.m'
-'rsHRF_install_SPM.m'
-%'rsHRF_toolbox.pptx' %rsHRF/documentation/
-'rsHRF.man'
-'rsHRF_logo.png' %additional to rsHRF/code/
-'spm_rsHRF.m'
-'tbx_cfg_rsHRF.m'
-%'LICENSE' %rsHRF/
-'deleteoutliers.m'
-'inpaint_nans3.m'
-'knee_pt.m'
-'rest_nextpow2_one35.m' %added
-'rest_IdealFilter.m' %added
-%'README.md' 
-%'update_log.txt' %rsHRF/code/history/
-%'demo_jobs.zip' %rsHRF/documentation/demo/
+'rsHRF.m'                            
+'rsHRF.man'                          
+'rsHRF_CPM.m'                        
+'rsHRF_ROI_sig_job.m'                
+'rsHRF_band_filter.m'                
+'rsHRF_check_ROI.m'                  
+'rsHRF_conn_check.m'                 
+'rsHRF_conn_job.m'                   
+'rsHRF_conn_run.m'                   
+'rsHRF_deconv_job.m'                 
+'rsHRF_deleteoutliers.m'             
+'rsHRF_denoise_job.m'                
+'rsHRF_estimation_FIR.m'             
+'rsHRF_estimation_impulseest.m'      
+'rsHRF_estimation_temporal_basis.m'  
+'rsHRF_find_event_vector.m'          
+'rsHRF_get_HRF_parameters.m'         
+'rsHRF_global_para.m'                
+'rsHRF_inpaint_nans3.m'              
+'rsHRF_install_SPM.m'                
+'rsHRF_iterative_wiener_deconv.m'    
+'rsHRF_knee_pt.m'                    
+'rsHRF_logo.png'                     
+'rsHRF_mvgc.m'                       
+'rsHRF_read_GIfTI_job.m'             
+'rsHRF_read_NIfTI_job.m'             
+'rsHRF_update_log.txt'               
+'rsHRF_viewer.m'                     
+'rsHRF_write_file.m'                 
+'spm_rsHRF.m'                        
+'tbx_cfg_rsHRF.m'      
 };
 %number of files
 numfile = length(rsHRF_file);
