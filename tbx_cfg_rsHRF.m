@@ -1,4 +1,4 @@
-function HRFrs = tbx_cfg_rsHRF
+﻿function HRFrs = tbx_cfg_rsHRF
 % Configuration file for toolbox 'rsHRF'
 % https://github.com/guorongwu/rsHRF
 % $Id: rsHRF.m
@@ -298,6 +298,9 @@ Denoising.name    = 'Denoising';
 Denoising.val     = {covreg, Detrending, Bandfilter, Despiking,ROI1st};
 Denoising.help    = {'Remove possible confounds.'};
 
+Denoising2         = Denoising;
+Denoising2.val     = {covreg, Detrending, Bandfilter, Despiking};
+
 Denoising_surf =  Denoising;
 Denoising_surf.val     = {covreg, Detrending, Bandfilter, Despiking, ROI1st};
 
@@ -560,6 +563,8 @@ seedROI.labels = {'Seed to voxels', 'ROI to ROI'};
 seedROI.values = {0,1};         
 seedROI.val    = {0};
 
+seedROIsurf = seedROI;
+seedROIsurf.labels = {'Seed to vertices', 'ROI to ROI'};
 % ---------------------------------------------------------------------
 % connectivity method FC
 % ---------------------------------------------------------------------
@@ -635,7 +640,10 @@ FCA.help    = {'Functional connectivity analysis.'};
 FCA2 = FCA;
 FCA2.val     = {seedROI, genericROI, FCM, conname};
 FCAsurf = FCA;
-FCAsurf.val     = {CONNData,seedROI, genericSurfROI, FCM, conname};
+FCAsurf.val     = {CONNData, seedROIsurf, genericSurfROI, FCM, conname};
+FCAsurf2 = FCA;
+FCAsurf2.val     = {seedROIsurf, genericSurfROI, FCM, conname};
+
 
 FCAROI = FCA;
 FCAROI.val     = {CONNData, FCM, conname};
@@ -654,7 +662,9 @@ GCA.help    = {'Granger causality analysis.'};
 GCA2 = GCA;
 GCA2.val     = {seedROI, genericROI, GCM, Morder, ndinfo, conname};
 GCAsurf = GCA;
-GCAsurf.val     = {CONNData,seedROI, genericSurfROI, GCM, Morder, ndinfo, conname};
+GCAsurf.val     = {CONNData, seedROIsurf, genericSurfROI, GCM, Morder, ndinfo, conname};
+GCAsurf2 = GCA;
+GCAsurf2.val     = {seedROIsurf, genericSurfROI, GCM, Morder, ndinfo, conname};
 
 
 GCAROI = GCA;
@@ -675,6 +685,9 @@ cona2 = cona;
 cona2.values  = {FCA2,GCA2};
 conaSurf = cona;
 conaSurf.values  = {FCAsurf,GCAsurf};
+conaSurf2= cona;
+conaSurf2.values  = {FCAsurf2,GCAsurf2};
+
 
 connROI = cona;
 connROI.values  = {FCAROI, GCAROI};
@@ -717,7 +730,7 @@ ROI_conn.help    = {'NIfTI data'};
 SurfROI_conn     = cfg_exbranch;
 SurfROI_conn.tag     = 'SurfROI_conn';
 SurfROI_conn.name    = '(Surface)ROI-wise Connectivity Analysis';
-SurfROI_conn.val     = {GNIfTI_Data, Denoising_surf, genericSurfROI,  brainmask, connROI2, Outdir,job_save};
+SurfROI_conn.val     = {GNIfTI_Data, Denoising, genericSurfROI,  brainmask, connROI2, Outdir,job_save};
 SurfROI_conn.prog = @wgr_vertex_ROI_rsHRF_conn;
 SurfROI_conn.help    = {'GIfTI data'};
 
@@ -731,7 +744,6 @@ vox_rsHRF.name    = 'Voxel-wise HRF deconvolution';
 vox_rsHRF.val     = {GNIfTI_Data, Denoising, HRFE, rmoutlier,brainmask, cona, Outdir, Datasave, prefix};
 vox_rsHRF.prog = @wgr_vox_ROI_rsHRF_conn;
 vox_rsHRF.help    = {'NIfTI data'}; %{'Voxel-wise HRF deconvolution'};
-% vox_rsHRF.vout  = @vox_rsHRF_out;
 
 % ---------------------------------------------------------------------
 % vertex-wise HRF deconvolution
@@ -739,7 +751,7 @@ vox_rsHRF.help    = {'NIfTI data'}; %{'Voxel-wise HRF deconvolution'};
 mesh_rsHRF         = cfg_exbranch;
 mesh_rsHRF.tag     = 'mesh_rsHRF';
 mesh_rsHRF.name    = 'Vertex-wise HRF deconvolution';
-mesh_rsHRF.val     = {GNIfTI_Data, Denoising_surf, HRFE, brainmask, conaSurf, Outdir, Datasave, prefix};
+mesh_rsHRF.val     = {GNIfTI_Data, Denoising, HRFE, brainmask, conaSurf, Outdir, Datasave, prefix};
 mesh_rsHRF.prog = @wgr_vertex_ROI_rsHRF_conn;
 mesh_rsHRF.help    = {'GIfTI data'}; %{'Vertex-wise HRF deconvolution'};
 
@@ -759,7 +771,7 @@ vox_conn.help    = {'NIfTI data'};
 mesh_conn         = cfg_exbranch;
 mesh_conn.tag     = 'mesh_conn';
 mesh_conn.name    = 'Vertex-wise Connectivity Analysis';
-mesh_conn.val     = {GNIfTI_Data, Denoising_surf, brainmask, conaSurf, Outdir, job_save};
+mesh_conn.val     = {GNIfTI_Data, Denoising, brainmask, conaSurf2, Outdir, job_save};
 mesh_conn.prog = @wgr_vertex_ROI_rsHRF_conn;
 mesh_conn.help    = {'NIfTI data'};
 
@@ -769,7 +781,7 @@ mesh_conn.help    = {'NIfTI data'};
 sig_rsHRF         = cfg_exbranch;
 sig_rsHRF.tag     = 'sig_rsHRF';
 sig_rsHRF.name    = 'ROI signal HRF deconvolution';
-sig_rsHRF.val     = {Signal_Data, Denoising_surf, HRFE, connROI, Outdir, DatasaveROI, prefix};
+sig_rsHRF.val     = {Signal_Data, Denoising2, HRFE, connROI, Outdir, DatasaveROI, prefix};
 sig_rsHRF.help    = {'..'};
 sig_rsHRF.prog = @wgr_sig_rsHRF_conn;
 sig_rsHRF.help    = {'Please DO NOT select NIFTI files in Nuisance Covariates!'}; %{'ROI-signal HRF deconvolution'
@@ -782,7 +794,7 @@ sig_rsHRF.help    = {'Please DO NOT select NIFTI files in Nuisance Covariates!'}
 sig_conn         = cfg_exbranch;
 sig_conn.tag     = 'sig_conn';
 sig_conn.name    = 'ROI-signal Connectivity Analysis';
-sig_conn.val     = {Signal_Data, Denoising, connROI2, Outdir,job_save};
+sig_conn.val     = {Signal_Data, Denoising2, connROI2, Outdir,job_save};
 sig_conn.help    = {'..'};
 sig_conn.prog = @wgr_sig_rsHRF_conn;
 sig_conn.help    = {'Please DO NOT select NIFTI files in Nuisance Covariates!'};
@@ -882,51 +894,3 @@ rsHRF(job,'sig')
 %======================================================================
 function wgr_vox_rsHRF_display(job)
 rsHRF(job,'display')
-
-%==========================================================================
-function dep = vox_rsHRF_out(job)
-% Output file names will be saved in a struct with field .files
-if job.savedata.hrfnii_save
-    ddep(1)            = cfg_dep;
-    ddep(1).sname      = 'HRF Deconvolved Images';
-    ddep(1).src_output = substruct('.','deconv_data');
-    ddep(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-
-    if job.rmoutlier
-        ddep(2)            = cfg_dep;
-        ddep(2).sname      = 'HRF Deconvolved Images (Outlier removed)';
-        ddep(2).src_output = substruct('.','Olrm_deconv_data');
-        ddep(2).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-    end
-    dep = [ddep];
-end
-
-paraf = {'Height', 'Time2peak','FWHM','event_number'};
-para_name = {'Response Height', 'Time to peak','FWHM','number of BOLD events'};
-if job.savedata.deconv_save
-    for i=1:length(paraf)
-        para_dep(i)            = cfg_dep;
-        para_dep(i).sname      = sprintf('HRF Parameters: %s',para_name{i});
-        para_dep(i).src_output = substruct('.',paraf);
-        para_dep(i).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-    
-        if job.rmoutlier
-            Olrm_para_dep(i)            = cfg_dep;
-            Olrm_para_dep(i).sname      = sprintf('HRF Parameters (Outlier removed): %s',para_name{i});
-            Olrm_para_dep(i).src_output = substruct('.',['Olrm_',paraf]);
-            Olrm_para_dep(i).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-
-            if i==length(paraf)
-                Olrm_para_dep(end+1)            = cfg_dep;
-                Olrm_para_dep(end).sname      = 'HRF Outlier';
-                Olrm_para_dep(end).src_output = substruct('.',['Olrm_',paraf]);
-                Olrm_para_dep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-            end
-        end
-    end
-    dep = [dep para_dep];
-    if job.rmoutlier
-        dep=[dep Olrm_para_dep];
-    end
-end
-

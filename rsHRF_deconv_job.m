@@ -4,6 +4,7 @@ name = job.raw_outname;
 flag_pval_pwgc = job.para_global.flag_pval_pwgc;
 flag_save_psc = job.para_global.flag_save_psc;
 num_iterations = job.para_global.num_iterations;
+flag_parfor = job.para_global.flag_parfor;
 %% HRF deconvolution
 para.TR = job.HRFE.TR ; 
 %%% the following parameter (upsample grid) can be > 1 only for Canonical/Fourier/Gamma.
@@ -37,7 +38,7 @@ if job.HRFE.hrfm<6
     'Fourier set (Hanning)'}; % 
     para.name = hrfmn{job.HRFE.hrfm};
     tic
-    [beta_hrf, bf, event_bold] = rsHRF_estimation_temporal_basis(data,para, temporal_mask);
+    [beta_hrf, bf, event_bold] = rsHRF_estimation_temporal_basis(data,para, temporal_mask,flag_parfor);
     hrfa = bf*beta_hrf(1:size(bf,2),:); %HRF
     hrf_baseline = beta_hrf(1+size(bf,2),:); %HRF baseline value for PSC calculation.
 else 
@@ -48,7 +49,7 @@ else
         para.estimation = 'sFIR';
     end
     para.T=1; % this needs to be = 1 for FIR
-    [beta_hrf,event_bold] = rsHRF_estimation_FIR(data,para, temporal_mask);
+    [beta_hrf,event_bold] = rsHRF_estimation_FIR(data,para, temporal_mask,flag_parfor);
     hrfa = beta_hrf(1:end-2,:); %HRF
     hrf_baseline = beta_hrf(end-1,:); %HRF baseline value for PSC calculation.
 end
@@ -56,10 +57,18 @@ end
 nvar = size(hrfa,2);
 PARA = zeros(3,nvar);
 event_number = nan(nvar,1);
-parfor ii=1:nvar
-    hrf1 = hrfa(:,ii);
-    PARA(:,ii) = rsHRF_get_HRF_parameters(hrf1,para.TR/para.T);% estimate HRF parameter
-    event_number(ii)=length(event_bold{1,ii});
+if flag_parfor
+    parfor ii=1:nvar
+        hrf1 = hrfa(:,ii);
+        PARA(:,ii) = rsHRF_get_HRF_parameters(hrf1,para.TR/para.T);% estimate HRF parameter
+        event_number(ii)=length(event_bold{1,ii});
+    end
+else
+    for ii=1:nvar
+        hrf1 = hrfa(:,ii);
+        PARA(:,ii) = rsHRF_get_HRF_parameters(hrf1,para.TR/para.T);% estimate HRF parameter
+        event_number(ii)=length(event_bold{1,ii});
+    end
 end
 fprintf('\nDone HRF estimation %8.2f seconds\n',toc)
  
@@ -90,16 +99,32 @@ if job.savedata.deconv_save  || any(conndata_flag~=1)
         hrfa_TR = hrfa;
     end
     data_deconv = nan(size(data));
+    sigma = std(data);
     if job.HRFE.hrfdeconv==1
-        parfor ii=1:nvar
-            hrf=hrfa_TR(:,ii);
-            data_deconv(:,ii) = rsHRF_iterative_wiener_deconv(data_nuisancerm(:,ii),hrf,num_iterations);
+        if flag_parfor
+            parfor ii=1:nvar
+                hrf=hrfa_TR(:,ii);
+                data_deconv(:,ii) = rsHRF_iterative_wiener_deconv(zscore(data_nuisancerm(:,ii)),hrf./sigma(ii),num_iterations);
+            end
+        else
+            for ii=1:nvar
+                hrf=hrfa_TR(:,ii);
+                data_deconv(:,ii) = rsHRF_iterative_wiener_deconv(zscore(data_nuisancerm(:,ii)),hrf./sigma(ii),num_iterations);
+            end
         end
     elseif job.HRFE.hrfdeconv==2
-        parfor ii=1:nvar
-            hrf=hrfa_TR(:,ii);
-            data_deconv(:,ii) = rsHRF_iterative_wiener_deconv(data(:,ii),hrf,num_iterations);
+        if flag_parfor
+            parfor ii=1:nvar
+                hrf=hrfa_TR(:,ii);
+                data_deconv(:,ii) = rsHRF_iterative_wiener_deconv(zscore(data(:,ii)),hrf./sigma(ii),num_iterations);
+            end
+        else
+            for ii=1:nvar
+                hrf=hrfa_TR(:,ii);
+                data_deconv(:,ii) = rsHRF_iterative_wiener_deconv(zscore(data(:,ii)),hrf./sigma(ii),num_iterations);
+            end
         end
+
     else
         disp('^.^') % do not perform deconvolution
     end
@@ -223,7 +248,9 @@ if ~flag_ROI % 3D volume/ 2D surface data
         conid = [conndata_flag~=2];
         data_nD = nan(Nscans, prod(v0.dim)); 
         data_nD(:,smask_ind) = data;
-        rsHRF_conn_run(data_nD, connroinfo(conid,:),v0,name,outdir,flag_pval_pwgc,flag_nii_gii);    
+        fprintf('BOLD Connectivity Analysis (%s)...\n',datetime(now,'ConvertFrom','datenum')); tic
+        rsHRF_conn_run(data_nD, connroinfo(conid,:),v0,name,outdir,flag_pval_pwgc,flag_nii_gii);  
+        fprintf('Done! Elapsed time is %ss\n',num2str(toc)); 
         clear data_nD data
     end
  
@@ -256,30 +283,36 @@ if ~flag_ROI % 3D volume/ 2D surface data
             data_deconv3D = nan(Nscans, prod(v0.dim)); 
             data_deconv3D(:,smask_ind) = data_deconv;
             name2 = [name,'_deconv'];
+            fprintf('Deconvolved BOLD Connectivity Analysis (%s)...\n',datetime(now,'ConvertFrom','datenum')); tic
             rsHRF_conn_run(data_deconv3D, connroinfo(conid,:),v0,name2,outdir,flag_pval_pwgc,flag_nii_gii);                            
+            fprintf('Done! Elapsed time is %ss\n',num2str(toc)); 
+
         end
  
-        if job.rmoutlier && job.para_global.rmoutlier_deconv
-            v1 = v; dat3 = zeros(v1(1).dim);
-            fname = fullfile(outdir,[job.prefix,name,'_Olrm',ext_nii_gii]);
-            out.Olrm_deconv_data{1} = fname;
-            for i=1:Nscans
-                v1(i).fname = fname;
-                v1(i).dt = [16,0]; 
-                data_deconv_rm= data_deconv(i,:);
-                data_deconv_rm(id_rm)=nan;
-                dat3(smask_ind) = data_deconv_rm;
-                dat3=rsHRF_inpaint_nans3(dat3,Inpainted_method);
-                data_deconv3D(i,:) = dat3(:);
-                if job.savedata.deconv_save
-                    spm_write_vol(v1(i),dat3);
+        if job.rmoutlier && job.para_global.rmoutlier_deconv 
+            if job.HRFE.hrfdeconv<3
+                v1 = v; dat3 = zeros(v1(1).dim);
+                fname = fullfile(outdir,[job.prefix,name,'_Olrm',ext_nii_gii]);
+                out.Olrm_deconv_data{1} = fname;
+                for i=1:Nscans
+                    v1(i).fname = fname;
+                    v1(i).dt = [16,0]; 
+                    data_deconv_rm= data_deconv(i,:);
+                    data_deconv_rm(id_rm)=nan;
+                    dat3(smask_ind) = data_deconv_rm;
+                    dat3=rsHRF_inpaint_nans3(dat3,Inpainted_method);
+                    data_deconv3D(i,:) = dat3(:);
+                    if job.savedata.deconv_save
+                        spm_write_vol(v1(i),dat3);
+                    end
                 end
             end
- 
             if ~isempty(connroinfo)&& any(conndata_flag~=1)
                 conid =  [conndata_flag~=1];
                 name2 = [name,'_deconv_Olrm'];
+                fprintf('(Outlier removed) Deconvolved BOLD Connectivity Analysis (%s)...\n',datetime(now,'ConvertFrom','datenum')); tic
                 rsHRF_conn_run(data_deconv3D, connroinfo(conid,:),v0,name2,outdir,flag_pval_pwgc,flag_nii_gii);     
+                fprintf('Done! Elapsed time is %ss\n',num2str(toc)); 
                 clear data_deconv3D
             end
  

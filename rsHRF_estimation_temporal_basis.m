@@ -1,4 +1,4 @@
-function [beta_hrf, bf, event_bold] = rsHRF_estimation_temporal_basis(data,xBF,temporal_mask);
+function [beta_hrf, bf, event_bold] = rsHRF_estimation_temporal_basis(data,xBF,temporal_mask,flag_parfor)
 % xBF.TR = 2;
 % xBF.T = 8;
 % xBF.T0 = fix(xBF.T/2); (reference time bin, see slice timing)
@@ -16,10 +16,13 @@ function [beta_hrf, bf, event_bold] = rsHRF_estimation_temporal_basis(data,xBF,t
 %                       addd AR_lag=0.
 %                       set paramater for local peak detection.
 % - 2019-08-01 - add temporal basis set (Fourier Set, Gamma function)
-
+if nargin<4
+    flag_parfor = 1;
+end
+    
 [N, nvar] = size(data);
 if isnan(xBF.order)
-    para = wgr_rsHRF_global_para;
+    para = rsHRF_global_para;
     xBF.order = para.num_basis;
 end
 bf = wgr_spm_get_bf(xBF);
@@ -27,11 +30,16 @@ warning('off','all')
 fprintf('#%d \n',nvar)
 beta_hrf = cell(1,nvar);
 event_bold= cell(1,nvar);
-parfor i=1:nvar
-%     fprintf('%d \n',i)
-    [beta_hrf{1,i},  event_bold{i}] =wgr_hrf_estimation(data(:,i),xBF,N,bf,temporal_mask);
+if flag_parfor
+    parfor i=1:nvar
+        [beta_hrf{1,i},  event_bold{i}] =wgr_hrf_estimation(data(:,i),xBF,N,bf,temporal_mask);
+    end
+else
+    for i=1:nvar
+        [beta_hrf{1,i},  event_bold{i}] =wgr_hrf_estimation(data(:,i),xBF,N,bf,temporal_mask);
+    end
 end
-
+    
 beta_hrf  =cell2mat(beta_hrf);
 
 warning on

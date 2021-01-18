@@ -1,9 +1,12 @@
-function [beta_rshrf,event_bold] = rsHRF_estimation_FIR(data,para,temporal_mask)
+function [beta_rshrf,event_bold] = rsHRF_estimation_FIR(data,para,temporal_mask,flag_parfor)
 % temporal_mask: generated from scrubbing.
 % By: Guo-Rong Wu (gronwu@gmail.com).
 % Faculty of Psychology, Southwest University.
 % History:
 % - 2015-04-17 - Initial version.
+if nargin<4
+    flag_parfor = 1;
+end
 
 para.temporal_mask=temporal_mask;
 [N,nvar] = size(data);
@@ -11,8 +14,14 @@ para.temporal_mask=temporal_mask;
 % warning off
 beta_rshrf = cell(1,nvar);
 event_bold= cell(1,nvar);
-parfor i=1:nvar
-    [beta_rshrf{i}, event_bold{i}] = wgr_FIR_estimation_HRF(data(:,i),para,N);
+if flag_parfor
+    parfor i=1:nvar
+        [beta_rshrf{i}, event_bold{i}] = wgr_FIR_estimation_HRF(data(:,i),para,N);
+    end
+else
+    for i=1:nvar
+        [beta_rshrf{i}, event_bold{i}] = wgr_FIR_estimation_HRF(data(:,i),para,N);
+    end
 end
 beta_rshrf  =cell2mat(beta_rshrf);
 % warning on

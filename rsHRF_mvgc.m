@@ -23,11 +23,11 @@ if ~flag_1to2
     F = nan(nvars);
     pvalue = nan(nvars);
 else
+    F = NaN;
     pvalue = nan;
 end
 % var_info(info,true); % report results (and bail out on error)
 if info.error
-    F = NaN;
     fprintf('.')
 else
     LSIG = log(diag(SIG));

@@ -1,9 +1,5 @@
 code SPM plugin - additions and modifications to v1.0:
 ------ v2.3, 202009 ----------- 
-Add a demo for LFP-IOS data analysis (rsHRF_demo_LFP_IOS.m).
-Add some demo scipts for UCLA BOLD-fMRI data analysis (rsHRF_demo_UCLA_batch.m),including:
---Add a demo for multivariate analysis of variance (manova.m) analysis.
---Add a script for connectome-based predictive modeling analysis(rsHRF_CPM.m).
 Update HRF deconvolution algorithm (rsHRF_iterative_wiener_deconv.m). 
 Modify several scripts name.
 Add partial correlation analysis. 

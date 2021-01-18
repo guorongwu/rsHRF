@@ -10,7 +10,7 @@ if ~flag_ROI % 2D/3D data
     end
     if ~isempty(job.connectivity)
         fprintf('Connectivity analysis...\n');
-        connroinfo = wgr_conn_check(job);
+        connroinfo = rsHRF_conn_check(job);
     end
     if ~isempty(connroinfo) 
         data_nD = nan(Nscans, prod(v0.dim)); 
@@ -23,7 +23,7 @@ if ~flag_ROI % 2D/3D data
 else %ROI-wise
     if ~isempty(job.connectivity)
         fprintf('Connectivity analysis...\n');
-        connroinfo = wgr_conn_check(job);
+        connroinfo = rsHRF_conn_check(job);
         rsHRF_conn_run(data, connroinfo,[],name,outdir,1);
         clear data
     else

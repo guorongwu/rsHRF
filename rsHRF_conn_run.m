@@ -6,6 +6,7 @@ meastr = {'pwGC','CGC','PCGC','Pearson','PartialPearson','Spearman','PartialSpea
 para_global = rsHRF_global_para;
 regmode = para_global.regmode; % for GC
 for j=1:size(connroinfo,1)
+    fprintf('Conn %d\n',j)
     roiid = connroinfo{j,1};  nroi = size(roiid,1);
     flag_seedROI  = connroinfo{j,2};
     conn_type = connroinfo{j,3};
@@ -75,6 +76,10 @@ for j=1:size(connroinfo,1)
                 out.inflow_N_pwGC{i} = fname;
                 dat3(smask_ind) = wgr_pwgc_2normal(gc,M.nobs,order);
                 rsHRF_write_file(fname,dat3,flag_nii_gii,v0)
+                
+                seed_information = roiid(i,:);
+                save(fullfile(outdir,[connroinfo{j,6},tmp,name,'_SeedInfo_pwGC',ordeinfo,'.mat']),'seed_information');
+                
                 if flag_pval_pwgc
                     fname = fullfile(outdir,[connroinfo{j,6},tmp,name,'_inflow_pval_pwGC',ordeinfo,ext_nii_gii]);
                     out.inflow_pval_pwGC{i} = fname;
@@ -100,6 +105,10 @@ for j=1:size(connroinfo,1)
                 out.Z{i} = fname;
                 dat3(smask_ind) = M.Matrix_z(i,:);
                 rsHRF_write_file(fname,dat3,flag_nii_gii,v0)
+                
+                seed_information = roiid(i,:);
+                save(fullfile(outdir,[connroinfo{j,6},tmp,name,'_SeedInfo_',meastr{connroinfo{j,3}},'.mat']),'seed_information');
+
             end
         end
         
@@ -108,10 +117,10 @@ for j=1:size(connroinfo,1)
         dat.ROI = [];
         if conn_type==1 || conn_type==2 || conn_type==3 % 1:pairwise  2:conditional 3: partially conditioned
             M = wgr_GC(dat,order,ndinfo, conn_type,regmode, flag_pval_pwgc);
-            save(fullfile(outdir,[connroinfo{j,6},name,'_',meastr{connroinfo{j,3}},'.mat']),'M');
+            save(fullfile(outdir,[connroinfo{j,6},name,'_',meastr{connroinfo{j,3}},'.mat']),'M','roiid');
         else
             M = wgr_FC(dat,conn_type);
-            save(fullfile(outdir,[connroinfo{j,6},name,'_Corr_',meastr{connroinfo{j,3}},'.mat']),'M');
+            save(fullfile(outdir,[connroinfo{j,6},name,'_Corr_',meastr{connroinfo{j,3}},'.mat']),'M','roiid');
         end
         
     end 
@@ -124,8 +133,8 @@ c(c<0)=0;
 c = sqrt(c);
 
 function [M] = wgr_GC(dat,order,ndinfo,flag_pw_cgc,regmode,flag_pval_pwgc,m);
-% flag_pw_cgc, 1: pairwise GC,  2: conditional GC,  5: partially conditioned GC.
-gcstr = {'Pairwise GC','Conditional GC','Pearson','Spearman','Partially Conditioned GC'};
+% flag_pw_cgc, 1: pairwise GC,  2: conditional GC,  3: partially conditioned GC.
+gcstr = {'Pairwise GC','Conditional GC','Partially Conditioned GC'};
 data = dat.data;
 [nobs,nvar] = size(data);
 ROI =  dat.ROI;
@@ -157,7 +166,7 @@ M.nobs=nobs;
 M.order = order;
 M.GC_type = gcstr{flag_pw_cgc};
 M.ndinfo = ndinfo;
-if flag_pw_cgc==5 % if nnz(ndinfo)==1
+if flag_pw_cgc==3 % if nnz(ndinfo)==1
     nd = ndinfo(1);
     if isnan(nd)
         nd = 6;
@@ -201,7 +210,7 @@ if nROI %ROI to data
         end
     end
 else % data to data
-    if flag_pw_cgc==5 
+    if flag_pw_cgc==3 
         [y_inform_gain, cind] = wgr_init_partial_conditioning(data,[],ndmax,order);
         M.information_gain = y_inform_gain;
         M.condition_id = cind;
@@ -213,7 +222,7 @@ else % data to data
         [M.GC_Matrix, M.pval_Matrix] = rsHRF_mvgc(data',order,regmode,0,flag_pval_pwgc);
     end
     
-    if flag_pw_cgc==5
+    if flag_pw_cgc==3
         [M.GC_Matrix, M.pval_Matrix] = wgr_PCGC(data,order,cind,nd,regmode,flag_pval_pwgc);
     end
 end
@@ -266,7 +275,7 @@ F = zeros(nvar);
 if flag_pval
     pvalue = nan(nvar);
 end
-for drive=1:nvar
+parfor drive=1:nvar
     for target=1:nvar
         if drive~=target
             zid = setdiff(cind(drive,:),target,'stable');
@@ -287,7 +296,7 @@ if flag_pval
     p_out = nan(nvar1,nvar2);
     p_in = p_out;
 end
-for drive=1:nvar1
+parfor drive=1:nvar1
     for target=1:nvar2
         data = [ROI(:,ind_X(drive)) data1(:,ind_Y(target))]';
         [F,pvalue] = rsHRF_mvgc(data,order,regmode,0,flag_pval);

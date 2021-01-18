@@ -1,8 +1,11 @@
 function para = rsHRF_global_para()
-%% miminum fMRI volumes (3D)
+%% HRF estimation using parallel computation across voxel/vertex.
+para.flag_parfor = 1;
+
+%% miminum BOLD-fMRI volumes (3D)
 para.volume_threshold = 30;
 
-%% Number of basis functions (k),Only setting for ''Gamma Functions'' (k), ''Fourier Set'' (2k+1), ''Fourier Set (Hanning)'' (2k+1)';
+%% Number of basis functions (k), Only setting for ''Gamma Functions'' (k), ''Fourier Set'' (2k+1), ''Fourier Set (Hanning)'' (2k+1)';
 para.num_basis = 3;
 
 %% iterations for iterative Wiener deconvolution
