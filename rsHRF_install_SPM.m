@@ -32,8 +32,10 @@ rsHRF_file = { %which files do you need?
 'rsHRF_read_GIfTI_job.m'             
 'rsHRF_read_NIfTI_job.m'             
 'rsHRF_write_file.m'                 
-'rsHRF_update_log.txt'               
+'rsHRF_update_log.txt'  
+'tbx_cfg_rsHRF.m'
 'demo_jobs.zip'  
+''
 %'README.md' 
 %'LICENSE' %rsHRF/
 };
