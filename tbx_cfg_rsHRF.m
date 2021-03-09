@@ -1,4 +1,4 @@
-﻿function HRFrs = tbx_cfg_rsHRF
+function HRFrs = tbx_cfg_rsHRF
 % Configuration file for toolbox 'rsHRF'
 % https://github.com/guorongwu/rsHRF
 % $Id: rsHRF.m
